@@ -264,7 +264,7 @@ const App = () => {
           totalRecords={826}
           onPageChange={onPageChange}
         /> 
-        <InputText ref={inputRef} type="text" min={1} max={42} placeholder='nº pag' className="p-inputtext-sm" inputMode="numeric" onKeyDown={goToPage} />
+        <InputText ref={inputRef} type="text" min={1} max={42} placeholder='nº pag' className="p-inputtext-sm" inputMode="text" onKeyDown={goToPage} />
         </div>       
         }
         <div className='filtro'>
@@ -390,15 +390,17 @@ const App = () => {
             }
           </LayoutGroup>
         </div>
+        {!checked && 
         <div style={{display:'flex', justifyContent:'center'}}>
-          <Paginator
-          first={first}
-          rows={rows}
-          pageLinkSize={2}
-          totalRecords={826}
-          onPageChange={onPageChange2}
-        /> 
-        </div> 
+        <Paginator
+        first={first}
+        rows={rows}
+        pageLinkSize={2}
+        totalRecords={826}
+        onPageChange={onPageChange2}
+      /> 
+      </div>         
+        }
     </>
   )
 }
