@@ -34,6 +34,7 @@ const App = () => {
   const [cargando, setCargando] = useState(false);
   const { scrollYProgress } = useScroll();
   const inputRef = useRef(null);
+  const inputRef2 = useRef(null);
   const selectStatus = useRef('');
   //const [pageLoaded, setPageLoaded] = useState(false);
   const scaleX = useSpring(scrollYProgress, {
@@ -175,14 +176,12 @@ const App = () => {
 
   const goToPage = (event) => {
     if (event.key === 'Enter') {
-      //console.log('Enter presionado!', inputRef.current.value);
       onPageChange(event);
-      /*if(inputRef.current.value > 0 && inputRef.current.value <= 42){
-        setPagActual(inputRef.current.value);
-        setFirst(inputRef.current.value);
-      }else{
-        console.log('de la pagia 1 a la 42');
-      }*/
+    }
+  }
+  const goToPage2 = (event) => {
+    if (event.key === 'Enter') {
+      onPageChange(event);
     }
   }
   const onPageChange = async(event) => {
@@ -190,6 +189,39 @@ const App = () => {
       
       if(event.key === 'Enter'){
         let pagina = parseInt(inputRef.current.value);
+        if(pagina > 0 && pagina <= 42){
+          setPagActual(pagina);
+          setFirst(rows * (pagina - 1));
+          setRows(rows);
+          setCargando(true);
+          const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${pagina}`);
+          setCargando(false);
+          setPersonajes(data.results);
+          console.log('Enter presionado!', pagina);
+        }else{
+          console.log('de la pagia 1 a la 42');
+        }
+      }else{
+        setPagActual(event.page+1);
+        setFirst(event.first);
+        setRows(event.rows);
+        setCargando(true);
+        const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${event.page+1}`);
+        setStatus('');
+        setNombre('');
+        setCargando(false);
+        setPersonajes(data.results);
+      }
+    }catch(error){
+      setCargando(false);
+      console.log(error);
+    }  
+  };
+  const onPageChange2 = async(event) => {
+    try{
+      
+      if(event.key === 'Enter'){
+        let pagina = parseInt(inputRef2.current.value);
         if(pagina > 0 && pagina <= 42){
           setPagActual(pagina);
           setFirst(rows * (pagina - 1));
@@ -317,7 +349,7 @@ const App = () => {
             {!checked && !cargando &&
               personajes.map( (personaje, index) => {
                 return (
-                  <motion.div layout key={index} className='personaje' onClick={() => toggleFlip(index)}>
+                  <motion.div layout key={index} className='personaje animate__animated animate__fadeIn animate__faster' onClick={() => toggleFlip(index)}>
                     <div className={`card ${personaje.flipped ? 'flipped' : ''}`}>
                       <div className='front'>
                         <img className='img-personaje' src={personaje.image} alt={`imagen de ${1}`} />
@@ -358,15 +390,14 @@ const App = () => {
             }
           </LayoutGroup>
         </div>
-        <div className='paginacion-goto'>
+        <div style={{display:'flex', justifyContent:'center'}}>
           <Paginator
           first={first}
           rows={rows}
-          pageLinkSize={1}
+          pageLinkSize={3}
           totalRecords={826}
-          onPageChange={onPageChange}
+          onPageChange={onPageChange2}
         /> 
-        <InputText ref={inputRef} type="text" min={1} max={42} placeholder='nº pag' className="p-inputtext-sm" inputMode="numeric" onKeyDown={goToPage} />
         </div> 
     </>
   )
