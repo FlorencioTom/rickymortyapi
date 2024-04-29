@@ -222,7 +222,7 @@ const App = () => {
     <>
 
       <ScrollToTop smooth className='animate__animated animate__fadeIn animate__faster' component={<FontAwesomeIcon icon={faArrowUp} />}/>
-    
+      
         {!checked && 
           <div className='paginacion-goto'>
           <Paginator
@@ -303,6 +303,8 @@ const App = () => {
 
         </div>
         
+      
+        
         <motion.div className="progress-bar" style={{ scaleX }} />
         
         <div className='personajes'>
@@ -356,6 +358,16 @@ const App = () => {
             }
           </LayoutGroup>
         </div>
+        <div className='paginacion-goto'>
+          <Paginator
+          first={first}
+          rows={rows}
+          pageLinkSize={1}
+          totalRecords={826}
+          onPageChange={onPageChange}
+        /> 
+        <InputText ref={inputRef} type="number" min={1} max={42} placeholder='nº pag' className="p-inputtext-sm" inputMode="numeric" onKeyDown={goToPage} />
+        </div> 
     </>
   )
 }
