@@ -190,7 +190,7 @@ const App = () => {
           totalRecords={826}
           onPageChange={onPageChange}
         /> 
-        <InputText ref={inputRef} type="number" min={1} max={42} className="p-inputtext-sm" inputMode="numeric" onKeyDown={goToPage} />
+        <InputText ref={inputRef} type="number" min={1} max={42} placeholder='nº pag' className="p-inputtext-sm" inputMode="numeric" onKeyDown={goToPage} />
         </div>       
         }
         <div className='filtro'>
