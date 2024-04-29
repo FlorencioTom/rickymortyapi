@@ -228,7 +228,7 @@ const App = () => {
           <Paginator
           first={first}
           rows={rows}
-          pageLinkSize={2}
+          pageLinkSize={1}
           totalRecords={826}
           onPageChange={onPageChange}
         /> 
