@@ -31,6 +31,7 @@
   font-size: 30px;
   color:black;
   border:5px solid black;
+  bottom: 100px;
 }
 
 .progress-bar {
