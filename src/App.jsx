@@ -7,13 +7,19 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
+import {motion, LayoutGroup, useScroll, useSpring} from 'framer-motion';
 import axios from 'axios';
+import ScrollToTop from "react-scroll-to-top";
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUp } from '@fortawesome/free-solid-svg-icons';
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import "primereact/resources/themes/lara-dark-cyan/theme.css";
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import 'animate.css';
 import './App.css';
+
 
 const App = () => {
   const [first, setFirst] = useState(0);
@@ -25,15 +31,27 @@ const App = () => {
   const [todos, setTodos] = useState([]);
   const [pagActual, setPagActual] = useState(1);
   const [nombre, setNombre] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const { scrollYProgress } = useScroll();
   const inputRef = useRef(null);
   const selectStatus = useRef('');
+  //const [pageLoaded, setPageLoaded] = useState(false);
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 500,
+    damping: 60,
+    restDelta: 0.001
+  });
 
   useEffect(() => {
     pag1();
+    //window.addEventListener('load', handlePageLoad);
   }, []);
   //TODO: BOTON DE SUBIR ARRIBA
   //TODO: IR A UNA PAGINA ESPECIFICA
   //TODO: TE PUEDES GUARDAR TUS FAVORITOS
+  const handlePageLoad = () => {
+    setPageLoaded(true);
+  }
   const toggleFlip = (index) => {
     /*setStatus('');
     setNombre('');*/
@@ -52,8 +70,10 @@ const App = () => {
   };
 
   const pag1 = async() => {
+    setCargando(true);
     const {data} = await axios(`https://rickandmortyapi.com/api/character/`); 
     setPaginas(data.info.pages);
+    setCargando(false);
     setPersonajes(data.results); 
   }
 
@@ -62,7 +82,6 @@ const App = () => {
     setStatus('');
     setNombre('');
     if(!event.target.checked){
-
       setTodos([]);
       setChecked(!checked);
       //console.log(todos.length);   
@@ -70,12 +89,14 @@ const App = () => {
       
       const array = Array.from({ length: paginas });
       let acumulados = [];
+      setCargando(true);
       for (let index = 0; index < array.length; index++) {
         const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${index+1}`);
         data.results.forEach((obj, i) => {
           acumulados.push(obj);
         });
       } 
+      setCargando(false);
       //console.log(acumulados);
       setTodos(acumulados);
       setChecked(!checked);  
@@ -87,6 +108,7 @@ const App = () => {
     console.log(event.target.value, nombre);
 
     if(!checked){
+      setCargando(true);
       const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${pagActual}`);
       const nuevosPersonajes = data.results.filter((el, i) => {
         if(el.status.toLowerCase().trim().includes(event.target.value.toLowerCase().trim()) && 
@@ -95,10 +117,12 @@ const App = () => {
         }
       });
       console.log(`${nuevosPersonajes.length} Resultados`); 
+      setCargando(false);
       setPersonajes(nuevosPersonajes);
     }else{
       let acumulados = [];
       const array = Array.from({ length: paginas });
+      setCargando(true);
       for(let index = 0; index < array.length; index++){
         const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${index+1}`);
         data.results.forEach((obj, i) => {
@@ -109,6 +133,7 @@ const App = () => {
         });
       }   
       console.log(`${acumulados.length} Resultados`);  
+      setCargando(false);
       setTodos(acumulados);      
     }
   };
@@ -117,6 +142,7 @@ const App = () => {
     setNombre(event.target.value);
     console.log(event.target.value, status);
     if(!checked){
+      setCargando(true);
       const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${pagActual}`);
       const nuevosPersonajes = data.results.filter((el, i) => {
         if(el.name.toLowerCase().trim().includes(event.target.value.toLowerCase().trim()) && 
@@ -125,10 +151,12 @@ const App = () => {
         }
       });
       console.log(`${nuevosPersonajes.length} Resultados`); 
+      setCargando(false);
       setPersonajes(nuevosPersonajes);
     }else{
       let acumulados = [];
       const array = Array.from({ length: paginas });
+      setCargando(true);
       for(let index = 0; index < array.length; index++){
         const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${index+1}`);
         data.results.forEach((obj, i) => {
@@ -139,6 +167,7 @@ const App = () => {
         });
       }   
       console.log(`${acumulados.length} Resultados`);  
+      setCargando(false);
       setTodos(acumulados);      
     }
 
@@ -157,36 +186,49 @@ const App = () => {
     }
   }
   const onPageChange = async(event) => {
-
-    if(event.key === 'Enter'){
-      let pagina = parseInt(inputRef.current.value);
-      if(pagina > 0 && pagina <= 42){
-        setPagActual(pagina);
-        setFirst(rows * (pagina - 1));
-        setRows(rows);
-        const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${pagina}`);
-        setPersonajes(data.results);
-        console.log('Enter presionado!', pagina);
+    try{
+      
+      if(event.key === 'Enter'){
+        let pagina = parseInt(inputRef.current.value);
+        if(pagina > 0 && pagina <= 42){
+          setPagActual(pagina);
+          setFirst(rows * (pagina - 1));
+          setRows(rows);
+          setCargando(true);
+          const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${pagina}`);
+          setCargando(false);
+          setPersonajes(data.results);
+          console.log('Enter presionado!', pagina);
+        }else{
+          console.log('de la pagia 1 a la 42');
+        }
       }else{
-        console.log('de la pagia 1 a la 42');
+        setPagActual(event.page+1);
+        setFirst(event.first);
+        setRows(event.rows);
+        setCargando(true);
+        const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${event.page+1}`);
+        setStatus('');
+        setNombre('');
+        setCargando(false);
+        setPersonajes(data.results);
       }
-    }else{
-      setPagActual(event.page+1);
-      setFirst(event.first);
-      setRows(event.rows);
-      const {data} = await axios(`https://rickandmortyapi.com/api/character/?page=${event.page+1}`);
-      setStatus('');
-      setNombre('');
-      setPersonajes(data.results);
-    }   
+    }catch(error){
+      setCargando(false);
+      console.log(error);
+    }  
   };
   return (
     <>
+
+      <ScrollToTop smooth className='animate__animated animate__fadeIn animate__faster' component={<FontAwesomeIcon icon={faArrowUp} />}/>
+    
         {!checked && 
-          <div style={{display:'flex', justifyContent:'center', gap:'10px'}}>
+          <div className='paginacion-goto'>
           <Paginator
           first={first}
           rows={rows}
+          pageLinkSize={2}
           totalRecords={826}
           onPageChange={onPageChange}
         /> 
@@ -260,47 +302,59 @@ const App = () => {
         </div>
 
         </div>
+        
+        <motion.div className="progress-bar" style={{ scaleX }} />
+        
         <div className='personajes'>
-          {!checked &&
-            personajes.map( (personaje, index) => {
-              return (
-                <div key={index} className='personaje' onClick={() => toggleFlip(index)}>
-                  <div className={`card ${personaje.flipped ? 'flipped' : ''}`}>
-                    <div className='front'>
-                      <img className='img-personaje' src={personaje.image} alt={`imagen de ${1}`} />
-                    </div>
-                    <div className='back'>
-                      <p className='name-personaje'>{personaje.status}</p>
-                      <p className='name-personaje'>{personaje.name}</p>
-                      <p className='name-personaje'>{personaje.gender}</p>
-                      <p className='name-personaje'>{personaje.species}</p>
-                      <p className='name-personaje'>{personaje.location.name}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
+          {cargando && 
+            <div className='contaier-spinner'>
+              <ProgressSpinner style={{width: '50px', height: '50px'}} strokeWidth="8" fill="var(--surface-ground)" animationDuration=".5s" />
+            </div>         
           }
-          {checked &&
-            todos.map( (personaje, index) => {
-              return (
-                <div key={index} className='personaje' onClick={() => toggleFlip(index)}>
-                  <div className={`card ${personaje.flipped ? 'flipped' : ''}`}>
-                    <div className='front'>
-                      <img className='img-personaje' src={personaje.image} alt={`imagen de ${1}`} />
+          <LayoutGroup>
+            {!checked && !cargando &&
+              personajes.map( (personaje, index) => {
+                return (
+                  <motion.div layout key={index} className='personaje' onClick={() => toggleFlip(index)}>
+                    <div className={`card ${personaje.flipped ? 'flipped' : ''}`}>
+                      <div className='front'>
+                        <img className='img-personaje' src={personaje.image} alt={`imagen de ${1}`} />
+                      </div>
+                      <div className='back'>
+                        <p className='name-personaje'>{personaje.status}</p>
+                        <p className='name-personaje'>{personaje.name}</p>
+                        <p className='name-personaje'>{personaje.gender}</p>
+                        <p className='name-personaje'>{personaje.species}</p>
+                        <p className='name-personaje'>{personaje.location.name}</p>
+                      </div>
                     </div>
-                    <div className='back'>
-                      <p className='name-personaje'>{personaje.status}</p>
-                      <p className='name-personaje'>{personaje.name}</p>
-                      <p className='name-personaje'>{personaje.gender}</p>
-                      <p className='name-personaje'>{personaje.species}</p>
-                      <p className='name-personaje'>{personaje.location.name}</p>
+                  </motion.div>
+                );
+              })
+            }
+          </LayoutGroup>
+          <LayoutGroup>
+            {checked && !cargando &&
+              todos.map( (personaje, index) => {
+                return (
+                  <motion.div key={index} className='personaje' onClick={() => toggleFlip(index)}>
+                    <div className={`card ${personaje.flipped ? 'flipped' : ''}`}>
+                      <div className='front'>
+                        <img className='img-personaje' src={personaje.image} alt={`imagen de ${1}`} />
+                      </div>
+                      <div className='back'>
+                        <p className='name-personaje'>{personaje.status}</p>
+                        <p className='name-personaje'>{personaje.name}</p>
+                        <p className='name-personaje'>{personaje.gender}</p>
+                        <p className='name-personaje'>{personaje.species}</p>
+                        <p className='name-personaje'>{personaje.location.name}</p>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              );
-            })
-          }
+                  </motion.div>
+                );
+              })
+            }
+          </LayoutGroup>
         </div>
     </>
   )
